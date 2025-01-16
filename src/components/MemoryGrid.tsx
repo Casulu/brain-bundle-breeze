@@ -17,6 +17,7 @@ export const MemoryGrid = () => {
   const [moves, setMoves] = useState(0);
   const [firstChoice, setFirstChoice] = useState<Card | null>(null);
   const [secondChoice, setSecondChoice] = useState<Card | null>(null);
+  const [gameEnded, setGameEnded] = useState(false);
 
   const initializeGame = () => {
     const shuffledCards = [...EMOJIS, ...EMOJIS]
@@ -31,6 +32,7 @@ export const MemoryGrid = () => {
     setMoves(0);
     setFirstChoice(null);
     setSecondChoice(null);
+    setGameEnded(false);
   };
 
   useEffect(() => {
@@ -54,6 +56,7 @@ export const MemoryGrid = () => {
         
         if (allMatched) {
           toast("Congratulations! You've won! 🎉");
+          setGameEnded(true);
         }
       } else {
         setTimeout(() => resetTurn(), 1000);
@@ -62,7 +65,7 @@ export const MemoryGrid = () => {
   }, [firstChoice, secondChoice]);
 
   const handleCardClick = (card: Card) => {
-    if (card.isFlipped || card.isMatched) return;
+    if (gameEnded || card.isFlipped || card.isMatched) return;
     
     if (!firstChoice) {
       setFirstChoice(card);
@@ -92,9 +95,24 @@ export const MemoryGrid = () => {
     );
   };
 
+  const revealAllCards = () => {
+    setCards((prevCards) =>
+      prevCards.map((card) => ({ ...card, isFlipped: true, isMatched: true }))
+    );
+    setGameEnded(true);
+    toast("Game Over - All cards revealed! 👀");
+  };
+
   return (
     <div className="flex flex-col items-center">
       <ScoreBoard moves={moves} onRestart={initializeGame} />
+      <button
+        onClick={revealAllCards}
+        className="mb-4 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+        disabled={gameEnded}
+      >
+        Reveal All Cards
+      </button>
       <div className="grid grid-cols-4 gap-4">
         {cards.map((card) => (
           <MemoryCard
